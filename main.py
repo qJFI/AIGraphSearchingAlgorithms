@@ -1,6 +1,6 @@
 import pygame
 import math
-from queue import Queue
+from algorithms import bfs, dfs, ucs, greedy_search, a_star
 import heapq
 
 # Initialize Pygame
@@ -42,6 +42,9 @@ buttons = {
     "Run DFS": pygame.Rect(1060, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
     "Run UCS": pygame.Rect(1210, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
     "Add Heuristic": pygame.Rect(1360, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Example": pygame.Rect(1510, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Run Greedy": pygame.Rect(1660, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Run A*": pygame.Rect(1810, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
 }
 
 # Graph data
@@ -75,7 +78,6 @@ def draw_toolbar():
             (rect.x + (BUTTON_WIDTH - text_surface.get_width()) // 2, rect.y + 10),
         )
 
-
 def draw_graph():
     """Draw the graph with nodes, edges, and heuristic values."""
     screen.fill(WHITE, (0, TOOLBAR_HEIGHT, WIDTH, HEIGHT - TOOLBAR_HEIGHT))
@@ -107,7 +109,6 @@ def draw_graph():
             heuristic_text = font.render(f"h={heuristics[i]}", True, BLACK)
             screen.blit(heuristic_text, (node[0] + 15, node[1] - 10))
 
-
 def draw_input_box():
     """Draw the input box for entering edge weights."""
     pygame.draw.rect(screen, WHITE, input_box)
@@ -116,11 +117,9 @@ def draw_input_box():
     screen.blit(text_surface, (input_box.x + 5, input_box.y + 5))
     pygame.display.update()
 
-
 def distance(node1, node2):
     """Calculate Euclidean distance between two nodes."""
     return math.sqrt((node1[0] - node2[0]) ** 2 + (node1[1] - node2[1]) ** 2)
-
 
 def get_clicked_node(pos):
     """Return the index of the node at the clicked position, or None."""
@@ -129,136 +128,13 @@ def get_clicked_node(pos):
             return i
     return None
 
-
-def bfs(start, goal):
-    """Perform Breadth-First Search."""
-    if start is None or goal is None:
-        return
-
-    queue = Queue()
-    queue.put(start)
-    visited = set()
-    came_from = {}
-
-    while not queue.empty():
-        current = queue.get()
-
-        if current == goal:
-            reconstruct_path(came_from, start, goal)
-            return
-
-        visited.add(current)
-        for edge in edges:
-            if edge[0] == current and edge[1] not in visited:
-                queue.put(edge[1])
-                visited.add(edge[1])
-                came_from[edge[1]] = current
-            elif edge[1] == current and edge[0] not in visited:
-                queue.put(edge[0])
-                visited.add(edge[0])
-                came_from[edge[0]] = current
-
-        draw_graph()
-        for node in visited:
-            pygame.draw.circle(screen, YELLOW, nodes[node], NODE_RADIUS)
-        pygame.display.update()
-        pygame.time.wait(300)
-
-
-def dfs(start, goal):
-    """Perform Depth-First Search."""
-    if start is None or goal is None:
-        return
-
-    stack = [start]
-    visited = set()
-    came_from = {}
-
-    while stack:
-        current = stack.pop()
-
-        if current in visited:
-            continue
-
-        visited.add(current)
-
-        if current == goal:
-            reconstruct_path(came_from, start, goal)
-            return
-
-        for edge in edges:
-            if edge[0] == current and edge[1] not in visited:
-                stack.append(edge[1])
-                came_from[edge[1]] = current
-            elif edge[1] == current and edge[0] not in visited:
-                stack.append(edge[0])
-                came_from[edge[0]] = current
-
-        draw_graph()
-        for node in visited:
-            pygame.draw.circle(screen, YELLOW, nodes[node], NODE_RADIUS)
-        pygame.display.update()
-        pygame.time.wait(300)
-
-
-def ucs(start, goal):
-    """Perform Uniform Cost Search."""
-    if start is None or goal is None:
-        return
-
-    priority_queue = []
-    heapq.heappush(priority_queue, (0, start))  # (cost, node)
-    visited = set()
-    came_from = {}
-    cost_so_far = {start: 0}
-
-    while priority_queue:
-        current_cost, current_node = heapq.heappop(priority_queue)
-
-        if current_node in visited:
-            continue
-
-        visited.add(current_node)
-
-        if current_node == goal:
-            reconstruct_path(came_from, start, goal)
-            return
-
-        for edge in edges:
-            if edge[0] == current_node or edge[1] == current_node:
-                neighbor = edge[1] if edge[0] == current_node else edge[0]
-                new_cost = current_cost + edge[2]
-
-                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
-                    cost_so_far[neighbor] = new_cost
-                    came_from[neighbor] = current_node
-                    heapq.heappush(priority_queue, (new_cost, neighbor))
-
-        draw_graph()
-        for node in visited:
-            pygame.draw.circle(screen, YELLOW, nodes[node], NODE_RADIUS)
-        pygame.display.update()
-        pygame.time.wait(300)
-
-
-def reconstruct_path(came_from, start, goal):
-    """Reconstruct the path from start to goal."""
-    current = goal
-    while current != start:
-        prev = came_from[current]
-        pygame.draw.line(screen, GREEN, nodes[current], nodes[prev], EDGE_WIDTH + 2)
-        current = prev
-        pygame.display.update()
-        pygame.time.wait(300)
-
-
 def initialize_sample_graph():
     """Initialize the graph with a predefined sample."""
     global nodes, edges, start_node, goal_node, heuristics
     nodes = [
         (300, 400),
         (500, 300),
-               (500, 500),
+        (500, 500),
         (700, 400),
         (400, 200),
         (400, 600),
@@ -301,8 +177,6 @@ def main():
     global current_action, selected_node, start_node, goal_node, dragging_node, input_active, input_text, current_edge
     running = True
 
-    initialize_sample_graph()
-
     while running:
         draw_toolbar()
         draw_graph()
@@ -326,12 +200,34 @@ def main():
 
                 if input_active:
                     if event.key == pygame.K_RETURN:
-                        if selected_node is not None and input_text.isdigit():
-                            # Assign the entered heuristic value to the selected node
-                            heuristics[selected_node] = int(input_text)
-                            input_text = ""
-                            input_active = False
-                            selected_node = None
+                        if input_text.isdigit():
+                            if current_action == "Add Heuristic" and selected_node is not None:
+                                # Assign the entered heuristic value to the selected node
+                                heuristics[selected_node] = int(input_text)
+                                input_text = ""
+                                input_active = False
+                                selected_node = None
+
+                            elif current_action == "Connect Nodes" and current_edge is not None:
+                                # Modify the weight of the existing edge instead of adding a new one
+                                node1, node2 = current_edge
+                                edge_found = False
+
+                                # Search for the existing edge and update the weight
+                                for i, edge in enumerate(edges):
+                                    if (edge[0] == node1 and edge[1] == node2) or (edge[0] == node2 and edge[1] == node1):
+                                        edges[i] = (node1, node2, int(input_text))
+                                        edge_found = True
+                                        break
+
+                                # If the edge doesn't exist, add it as a new one (optional)
+                                if not edge_found:
+                                    edges.append((node1, node2, int(input_text)))
+
+                                input_text = ""
+                                input_active = False
+                                current_edge = None
+
                     elif event.key == pygame.K_BACKSPACE:
                         # Allow backspace to edit the input text
                         input_text = input_text[:-1]
@@ -348,6 +244,9 @@ def main():
                             selected_node = None
                             input_active = False
                             dragging_node = None
+                            # Initialize sample graph if "Example" button is pressed
+                            if label == "Example":
+                                initialize_sample_graph()
                             break
                 else:  # Graph interaction
                     if current_action == "Add Node":
@@ -398,17 +297,24 @@ def main():
                     nodes[dragging_node] = event.pos
 
             if current_action == "Run BFS" and start_node is not None and goal_node is not None:
-                bfs(start_node, goal_node)
+                bfs(start_node, goal_node, nodes, edges, draw_graph)
                 current_action = None
 
             if current_action == "Run DFS" and start_node is not None and goal_node is not None:
-                dfs(start_node, goal_node)
+                dfs(start_node, goal_node, nodes, edges, draw_graph)
                 current_action = None
 
             if current_action == "Run UCS" and start_node is not None and goal_node is not None:
-                ucs(start_node, goal_node)
+                ucs(start_node, goal_node, nodes, edges, draw_graph)
                 current_action = None
 
+            if current_action == "Run Greedy" and start_node is not None and goal_node is not None:
+                greedy_search(start_node, goal_node, nodes, edges, heuristics, draw_graph)
+                current_action = None
+
+            if current_action == "Run A*" and start_node is not None and goal_node is not None:
+                a_star(start_node, goal_node, nodes, edges, heuristics, draw_graph)
+                current_action = None
 
 if __name__ == "__main__":
     main()
