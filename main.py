@@ -1,5 +1,6 @@
 import pygame
 import math
+import interface
 from algorithms import bfs, dfs, ucs, greedy_search, a_star
 import heapq
 
@@ -48,11 +49,12 @@ buttons = {
 }
 
 # Graph data
-nodes = []  # List of node positions (x, y)
-edges = []  # List of edges [(node1_index, node2_index, weight)]
+nodes = []  # List of nodes as (x, y, id)
+edges = []  # List of edges [(node1_id, node2_id, weight)]
 heuristics = {}  # Heuristic values for each node
 start_node = None
-goal_node = None
+goal_nodes = set()  # Set of goal node ids
+next_node_id = 0  # To assign unique IDs to nodes
 
 # Action States
 current_action = None
@@ -78,36 +80,48 @@ def draw_toolbar():
             (rect.x + (BUTTON_WIDTH - text_surface.get_width()) // 2, rect.y + 10),
         )
 
+
 def draw_graph():
     """Draw the graph with nodes, edges, and heuristic values."""
     screen.fill(WHITE, (0, TOOLBAR_HEIGHT, WIDTH, HEIGHT - TOOLBAR_HEIGHT))
 
     # Draw edges
     for edge in edges:
-        node1 = nodes[edge[0]]
-        node2 = nodes[edge[1]]
-        pygame.draw.line(screen, GRAY, node1, node2, EDGE_WIDTH)
+        node1_id, node2_id, weight = edge
+        node1 = next((n for n in nodes if n[2] == node1_id), None)
+        node2 = next((n for n in nodes if n[2] == node2_id), None)
+        if node1 and node2:
+            x1, y1, _ = node1
+            x2, y2, _ = node2
+            pygame.draw.line(screen, GRAY, (x1, y1), (x2, y2), EDGE_WIDTH)
 
-        # Draw weight
-        mid_x = (node1[0] + node2[0]) // 2
-        mid_y = (node1[1] + node2[1]) // 2
-        weight_text = font.render(str(edge[2]), True, BLACK)
-        screen.blit(weight_text, (mid_x, mid_y))
+            # Draw weight
+            mid_x = (x1 + x2) // 2
+            mid_y = (y1 + y2) // 2
+            weight_text = font.render(str(weight), True, BLACK)
+            screen.blit(weight_text, (mid_x, mid_y))
 
     # Draw nodes
-    for i, node in enumerate(nodes):
-        color = GREEN if i == start_node else RED if i == goal_node else BLUE
-        pygame.draw.circle(screen, color, node, NODE_RADIUS)
-        pygame.draw.circle(screen, BLACK, node, NODE_RADIUS, 2)
+    for node in nodes:
+        x, y, node_id = node
+        if node_id == start_node:
+            color = GREEN
+        elif node_id in goal_nodes:
+            color = RED
+        else:
+            color = BLUE
+        pygame.draw.circle(screen, color, (x, y), NODE_RADIUS)
+        pygame.draw.circle(screen, BLACK, (x, y), NODE_RADIUS, 2)
 
         # Draw node label
-        label = font.render(str(i), True, BLACK)
-        screen.blit(label, (node[0] - 10, node[1] - 10))
+        label = font.render(str(node_id), True, BLACK)
+        screen.blit(label, (x - 10, y - 10))
 
         # Display heuristic values
-        if i in heuristics:
-            heuristic_text = font.render(f"h={heuristics[i]}", True, BLACK)
-            screen.blit(heuristic_text, (node[0] + 15, node[1] - 10))
+        if node_id in heuristics:
+            heuristic_text = font.render(f"h={heuristics[node_id]}", True, BLACK)
+            screen.blit(heuristic_text, (x + 15, y - 10))
+
 
 def draw_input_box():
     """Draw the input box for entering edge weights."""
@@ -117,32 +131,37 @@ def draw_input_box():
     screen.blit(text_surface, (input_box.x + 5, input_box.y + 5))
     pygame.display.update()
 
+
 def distance(node1, node2):
     """Calculate Euclidean distance between two nodes."""
     return math.sqrt((node1[0] - node2[0]) ** 2 + (node1[1] - node2[1]) ** 2)
 
+
 def get_clicked_node(pos):
-    """Return the index of the node at the clicked position, or None."""
-    for i, node in enumerate(nodes):
-        if distance(pos, node) <= NODE_RADIUS:
-            return i
+    """Return the id of the node at the clicked position, or None."""
+    for node in nodes:
+        x, y, node_id = node
+        if distance(pos, (x, y)) <= NODE_RADIUS:
+            return node_id
     return None
+
 
 def initialize_sample_graph():
     """Initialize the graph with a predefined sample."""
-    global nodes, edges, start_node, goal_node, heuristics
+    global nodes, edges, start_node, goal_nodes, heuristics, next_node_id
     nodes = [
-        (300, 400),
-        (500, 300),
-        (500, 500),
-        (700, 400),
-        (400, 200),
-        (400, 600),
-        (600, 200),
-        (600, 600),
-        (800, 300),
-        (800, 500),
+        (300, 400, 0),
+        (500, 300, 1),
+        (500, 500, 2),
+        (700, 400, 3),
+        (400, 200, 4),
+        (400, 600, 5),
+        (600, 200, 6),
+        (600, 600, 7),
+        (800, 300, 8),
+        (800, 500, 9),
     ]
+    next_node_id = 10  # Update next_node_id based on sample nodes
     edges = [
         (0, 1, 5),
         (1, 2, 3),
@@ -168,13 +187,14 @@ def initialize_sample_graph():
         6: 5,
         7: 4,
         8: 3,
-        9: 0,  # Goal node
+        9: 0,  # One of the goal nodes
     }
     start_node = 0
-    goal_node = 9
+    goal_nodes = {9}  # Initialize with node 9 as a goal node
+
 
 def main():
-    global current_action, selected_node, start_node, goal_node, dragging_node, input_active, input_text, current_edge
+    global current_action, selected_node, start_node, goal_nodes, dragging_node, input_active, input_text, current_edge, next_node_id, nodes, edges
     running = True
 
     while running:
@@ -220,7 +240,7 @@ def main():
                                         edge_found = True
                                         break
 
-                                # If the edge doesn't exist, add it as a new one (optional)
+                                # If the edge doesn't exist, add it as a new one
                                 if not edge_found:
                                     edges.append((node1, node2, int(input_text)))
 
@@ -250,7 +270,8 @@ def main():
                             break
                 else:  # Graph interaction
                     if current_action == "Add Node":
-                        nodes.append(pos)
+                        nodes.append((pos[0], pos[1], next_node_id))
+                        next_node_id += 1
                     elif current_action == "Set Start":
                         clicked_node = get_clicked_node(pos)
                         if clicked_node is not None:
@@ -258,7 +279,10 @@ def main():
                     elif current_action == "Set Goal":
                         clicked_node = get_clicked_node(pos)
                         if clicked_node is not None:
-                            goal_node = clicked_node
+                            if clicked_node in goal_nodes:
+                                goal_nodes.remove(clicked_node)
+                            else:
+                                goal_nodes.add(clicked_node)
                     elif current_action == "Connect Nodes":
                         clicked_node = get_clicked_node(pos)
                         if clicked_node is not None:
@@ -276,10 +300,12 @@ def main():
                     elif current_action == "Remove Node":
                         clicked_node = get_clicked_node(pos)
                         if clicked_node is not None:
-                            nodes.pop(clicked_node)
-                            edges[:] = [e for e in edges if clicked_node not in e]
+                            # Remove the node by id
+                            nodes = [n for n in nodes if n[2] != clicked_node]
+                            # Remove all edges connected to this node
+                            edges[:] = [e for e in edges if clicked_node not in e[:2]]
                             start_node = None if start_node == clicked_node else start_node
-                            goal_node = None if goal_node == clicked_node else goal_node
+                            goal_nodes.discard(clicked_node)  # Remove from goal nodes if present
                             heuristics.pop(clicked_node, None)
                     elif current_action == "Add Heuristic":
                         clicked_node = get_clicked_node(pos)
@@ -294,27 +320,32 @@ def main():
 
             if event.type == pygame.MOUSEMOTION:
                 if dragging_node is not None:
-                    nodes[dragging_node] = event.pos
+                    # Update the position of the dragging node
+                    for idx, node in enumerate(nodes):
+                        if node[2] == dragging_node:
+                            nodes[idx] = (event.pos[0], event.pos[1], node[2])
+                            break
 
-            if current_action == "Run BFS" and start_node is not None and goal_node is not None:
-                bfs(start_node, goal_node, nodes, edges, draw_graph)
+            if current_action == "Run BFS" and start_node is not None and goal_nodes:
+                bfs(start_node, goal_nodes, nodes, edges, draw_graph)
                 current_action = None
 
-            if current_action == "Run DFS" and start_node is not None and goal_node is not None:
-                dfs(start_node, goal_node, nodes, edges, draw_graph)
+            if current_action == "Run DFS" and start_node is not None and goal_nodes:
+                dfs(start_node, goal_nodes, nodes, edges, draw_graph)
                 current_action = None
 
-            if current_action == "Run UCS" and start_node is not None and goal_node is not None:
-                ucs(start_node, goal_node, nodes, edges, draw_graph)
+            if current_action == "Run UCS" and start_node is not None and goal_nodes:
+                ucs(start_node, goal_nodes, nodes, edges, draw_graph)
                 current_action = None
 
-            if current_action == "Run Greedy" and start_node is not None and goal_node is not None:
-                greedy_search(start_node, goal_node, nodes, edges, heuristics, draw_graph)
+            if current_action == "Run Greedy" and start_node is not None and goal_nodes:
+                greedy_search(start_node, goal_nodes, nodes, edges, heuristics, draw_graph)
                 current_action = None
 
-            if current_action == "Run A*" and start_node is not None and goal_node is not None:
-                a_star(start_node, goal_node, nodes, edges, heuristics, draw_graph)
+            if current_action == "Run A*" and start_node is not None and goal_nodes:
+                a_star(start_node, goal_nodes, nodes, edges, heuristics, draw_graph)
                 current_action = None
+
 
 if __name__ == "__main__":
     main()
