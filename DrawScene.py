@@ -10,18 +10,19 @@ def draw_toolbar():
     font = settings.font
     TOOLBAR_HEIGHT = settings.TOOLBAR_HEIGHT
     BUTTON_WIDTH = settings.BUTTON_WIDTH
-    BUTTON_COLOR = settings.BUTTON_COLOR
-    BUTTON_HIGHLIGHT_COLOR = settings.BUTTON_HIGHLIGHT_COLOR
-    TOOLBAR_COLOR = settings.TOOLBAR_COLOR
-    FONT_COLOR = settings.FONT_COLOR
+    FONT_COLOR = settings.get_color('FONT_COLOR')
     BLACK = (0, 0, 0)
 
     current_action = context.current_action
 
+    TOOLBAR_COLOR = settings.get_color('TOOLBAR_COLOR')
     pygame.draw.rect(screen, TOOLBAR_COLOR, (0, 0, screen.get_width(), TOOLBAR_HEIGHT))
+
     for label, rect in buttons.items():
         # Highlight the selected button
         mouse_pos = pygame.mouse.get_pos()
+        BUTTON_COLOR = settings.get_color('BUTTON_COLOR')
+        BUTTON_HIGHLIGHT_COLOR = settings.get_color('BUTTON_HIGHLIGHT_COLOR')
         if rect.collidepoint(mouse_pos):
             color = BUTTON_HIGHLIGHT_COLOR
         elif current_action == label:
@@ -50,15 +51,16 @@ def draw_graph():
     WIDTH = screen.get_width()
     HEIGHT = screen.get_height()
     TOOLBAR_HEIGHT = settings.TOOLBAR_HEIGHT
-    BACKGROUND_COLOR = settings.BACKGROUND_COLOR
-    NODE_COLOR = settings.NODE_COLOR
-    EDGE_COLOR = settings.EDGE_COLOR
-    PATH_COLOR = settings.PATH_COLOR
-    FONT_COLOR = settings.FONT_COLOR
-    VISITED_NODE_COLOR = settings.VISITED_NODE_COLOR
-    START_NODE_COLOR = settings.START_NODE_COLOR
-    GOAL_NODE_COLOR = settings.GOAL_NODE_COLOR
     BLACK = (0, 0, 0)
+
+    BACKGROUND_COLOR = settings.get_color('BACKGROUND_COLOR')
+    NODE_COLOR = settings.get_color('NODE_COLOR')
+    EDGE_COLOR = settings.get_color('EDGE_COLOR')
+    PATH_COLOR = settings.get_color('PATH_COLOR')
+    FONT_COLOR = settings.get_color('FONT_COLOR')
+    VISITED_NODE_COLOR = settings.get_color('VISITED_NODE_COLOR')
+    START_NODE_COLOR = settings.get_color('START_NODE_COLOR')
+    GOAL_NODE_COLOR = settings.get_color('GOAL_NODE_COLOR')
 
     screen.fill(BACKGROUND_COLOR, (0, TOOLBAR_HEIGHT, WIDTH, HEIGHT - TOOLBAR_HEIGHT))
 
@@ -104,8 +106,8 @@ def draw_input_box():
     screen = settings.screen
     input_box = settings.input_box
     font = settings.font
-    FONT_COLOR = settings.FONT_COLOR
-    INPUT_BOX_COLOR = settings.INPUT_BOX_COLOR
+    FONT_COLOR = settings.get_color('FONT_COLOR')
+    INPUT_BOX_COLOR = settings.get_color('INPUT_BOX_COLOR')
     BLACK = (0, 0, 0)
 
     input_text = context.input_text

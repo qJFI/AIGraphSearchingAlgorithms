@@ -15,10 +15,14 @@ def get_node_pos(node_id):
 
 def highlight_visited_nodes(visited):
     """Highlight the visited nodes during the search."""
+    VISITED_NODE_COLOR = settings.get_color('VISITED_NODE_COLOR')
+    NODE_RADIUS = settings.NODE_RADIUS
+    screen = settings.screen
+
     for node_id in visited:
         pos = get_node_pos(node_id)
         if pos:
-            pygame.draw.circle(settings.screen, settings.VISITED_NODE_COLOR, pos, settings.NODE_RADIUS)
+            pygame.draw.circle(screen, VISITED_NODE_COLOR, pos, NODE_RADIUS)
 
 def reconstruct_path(came_from, start, goal):
     """Reconstruct the path from start to goal."""
@@ -34,6 +38,10 @@ def reconstruct_path(came_from, start, goal):
 
     # Draw the final path
     draw_graph()
+    PATH_COLOR = settings.get_color('PATH_COLOR')
+    EDGE_WIDTH = settings.EDGE_WIDTH
+    screen = settings.screen
+
     for i in range(len(path) - 1):
         current_node = path[i]
         next_node = path[i + 1]
@@ -41,11 +49,11 @@ def reconstruct_path(came_from, start, goal):
         next_pos = get_node_pos(next_node)
         if current_pos and next_pos:
             pygame.draw.line(
-                settings.screen,
-                settings.PATH_COLOR,
+                screen,
+                PATH_COLOR,
                 current_pos,
                 next_pos,
-                settings.EDGE_WIDTH + 2,
+                EDGE_WIDTH + 2,
             )
     pygame.display.update()
     pygame.time.wait(1000)
@@ -72,7 +80,7 @@ def bfs():
 
         if current in goals:
             reconstruct_path(came_from, start, current)
-            return
+            return  # Stop the search upon reaching the first goal
 
         for edge in context.edges:
             neighbor = None
@@ -111,7 +119,7 @@ def dfs():
 
         if current in goals:
             reconstruct_path(came_from, start, current)
-            return
+            return  # Stop the search upon reaching the first goal
 
         for edge in context.edges:
             neighbor = None
@@ -152,7 +160,7 @@ def ucs():
 
         if current_node in goals:
             reconstruct_path(came_from, start, current_node)
-            return
+            return  # Stop the search upon reaching the first goal
 
         for edge in context.edges:
             neighbor = None
@@ -176,11 +184,12 @@ def greedy_search():
     """Perform Greedy Best-First Search."""
     start = context.start_node
     goals = context.goal_nodes
+    heuristics = context.heuristics
     if start is None or not goals:
         return
 
     priority_queue = []
-    heapq.heappush(priority_queue, (context.heuristics.get(start, float('inf')), start))
+    heapq.heappush(priority_queue, (heuristics.get(start, float('inf')), start))
     came_from = {}
     visited = set()
 
@@ -194,7 +203,7 @@ def greedy_search():
 
         if current_node in goals:
             reconstruct_path(came_from, start, current_node)
-            return
+            return  # Stop the search upon reaching the first goal
 
         for edge in context.edges:
             neighbor = None
@@ -203,7 +212,7 @@ def greedy_search():
             elif edge[1] == current_node:
                 neighbor = edge[0]
             if neighbor is not None and neighbor not in visited:
-                heapq.heappush(priority_queue, (context.heuristics.get(neighbor, float('inf')), neighbor))
+                heapq.heappush(priority_queue, (heuristics.get(neighbor, float('inf')), neighbor))
                 if neighbor not in came_from:
                     came_from[neighbor] = current_node
 
@@ -216,11 +225,12 @@ def a_star():
     """Perform A* Search."""
     start = context.start_node
     goals = context.goal_nodes
+    heuristics = context.heuristics
     if start is None or not goals:
         return
 
     priority_queue = []
-    start_h = context.heuristics.get(start, float('inf'))
+    start_h = heuristics.get(start, float('inf'))
     heapq.heappush(priority_queue, (start_h, 0, start))  # (f_cost, g_cost, node)
     came_from = {}
     g_costs = {start: 0}
@@ -236,7 +246,7 @@ def a_star():
 
         if current_node in goals:
             reconstruct_path(came_from, start, current_node)
-            return
+            return  # Stop the search upon reaching the first goal
 
         for edge in context.edges:
             neighbor = None
@@ -248,7 +258,7 @@ def a_star():
                 tentative_g_cost = current_g_cost + edge[2]
                 if neighbor not in g_costs or tentative_g_cost < g_costs[neighbor]:
                     g_costs[neighbor] = tentative_g_cost
-                    f_cost = tentative_g_cost + context.heuristics.get(neighbor, float('inf'))
+                    f_cost = tentative_g_cost + heuristics.get(neighbor, float('inf'))
                     came_from[neighbor] = current_node
                     heapq.heappush(priority_queue, (f_cost, tentative_g_cost, neighbor))
 

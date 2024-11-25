@@ -129,14 +129,35 @@ def main():
                 if pos[1] <= settings.TOOLBAR_HEIGHT:  # Check if click is on the toolbar
                     for label, rect in settings.buttons.items():
                         if rect.collidepoint(pos):
-                            context.current_action = label
-                            context.selected_node = None
-                            context.input_active = False
-                            context.dragging_node = None
-                            # Initialize sample graph if "Example" button is pressed
-                            if label == "Example":
-                                initialize_sample_graph()
-                            break
+                            if label == "Toggle Dark Mode":
+                                # Toggle the dark mode
+                                settings.is_dark_mode = not settings.is_dark_mode
+                                # No need to change current_action
+                                break
+                            elif label == "Reset":
+                                # Reset the graph and context variables
+                                context.nodes = []
+                                context.edges = []
+                                context.heuristics = {}
+                                context.start_node = None
+                                context.goal_nodes = set()
+                                context.next_node_id = 0
+                                context.current_action = None
+                                context.selected_node = None
+                                context.dragging_node = None
+                                context.input_active = False
+                                context.input_text = ""
+                                context.current_edge = None
+                                break
+                            else:
+                                context.current_action = label
+                                context.selected_node = None
+                                context.input_active = False
+                                context.dragging_node = None
+                                # Initialize sample graph if "Example" button is pressed
+                                if label == "Example":
+                                    initialize_sample_graph()
+                                break
                 else:  # Graph interaction
                     if context.current_action == "Add Node":
                         context.nodes.append((pos[0], pos[1], context.next_node_id))
