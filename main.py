@@ -2,8 +2,6 @@
 import pygame
 import math
 from algorithms import bfs, dfs, ucs, greedy_search, a_star
-import heapq
-
 from DrawScene import draw_toolbar, draw_graph, draw_input_box
 import settings
 import context
@@ -197,25 +195,26 @@ def main():
                             context.nodes[idx] = (event.pos[0], event.pos[1], node[2])
                             break
 
-            if context.current_action == "Run BFS" and context.start_node is not None and context.goal_nodes:
-                bfs(draw_graph)
-                context.current_action = None
+        # Run algorithms if action is selected
+        if context.current_action == "Run BFS" and context.start_node is not None and context.goal_nodes:
+            bfs()
+            context.current_action = None
 
-            if context.current_action == "Run DFS" and context.start_node is not None and context.goal_nodes:
-                dfs(draw_graph)
-                context.current_action = None
+        if context.current_action == "Run DFS" and context.start_node is not None and context.goal_nodes:
+            dfs()
+            context.current_action = None
 
-            if context.current_action == "Run UCS" and context.start_node is not None and context.goal_nodes:
-                ucs(draw_graph)
-                context.current_action = None
+        if context.current_action == "Run UCS" and context.start_node is not None and context.goal_nodes:
+            ucs()
+            context.current_action = None
 
-            if context.current_action == "Run Greedy" and context.start_node is not None and context.goal_nodes:
-                greedy_search(draw_graph)
-                context.current_action = None
+        if context.current_action == "Run Greedy" and context.start_node is not None and context.goal_nodes:
+            greedy_search()
+            context.current_action = None
 
-            if context.current_action == "Run A*" and context.start_node is not None and context.goal_nodes:
-                a_star(draw_graph)
-                context.current_action = None
+        if context.current_action == "Run A*" and context.start_node is not None and context.goal_nodes:
+            a_star()
+            context.current_action = None
 
 if __name__ == "__main__":
     main()

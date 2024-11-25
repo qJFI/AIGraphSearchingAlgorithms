@@ -10,22 +10,33 @@ NODE_RADIUS = 20
 EDGE_WIDTH = 3
 TOOLBAR_HEIGHT = 100
 
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (128, 128, 128)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-BLUE = (73, 154, 229)
-YELLOW = (255, 255, 0)
-LIGHT_GRAY = (200, 200, 200)
-BUTTON_HIGHLIGHT = (180, 180, 180)
+# New Color Scheme
+BACKGROUND_COLOR = (10, 10, 50)        # Dark Blue
+BUTTON_COLOR = (0, 0, 128)             # Navy Blue
+BUTTON_HIGHLIGHT_COLOR = (25, 25, 112) # Midnight Blue
+NODE_COLOR = (30, 144, 255)            # Dodger Blue
+EDGE_COLOR = (70, 130, 180)            # Steel Blue
+FONT_COLOR = (255, 255, 255)           # White
+VISITED_NODE_COLOR = (255, 215, 0)     # Gold
+PATH_COLOR = (0, 255, 0)               # Lime
+TOOLBAR_COLOR = (15, 15, 70)           # Slightly lighter dark blue
+START_NODE_COLOR = (0, 255, 127)       # Spring Green
+GOAL_NODE_COLOR = (255, 69, 0)         # Orange Red
+INPUT_BOX_COLOR = (50, 50, 100)        # Darker Blue
 
-infoObject = pygame.display.Info()  # get real screen size to adjust window size
 # Pygame setup
+infoObject = pygame.display.Info()  # Get real screen size to adjust window size
 screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h - 50), pygame.RESIZABLE)
 pygame.display.set_caption("Interactive Graph Visualizer")
-font = pygame.font.SysFont('Calibri (Headings)', 24)
+
+# Load a gaming-style font
+# You need to have the font file in your project directory
+font_name = "Orbitron-Regular.ttf"  # Ensure this font file exists
+try:
+    font = pygame.font.Font(font_name, 24)
+except:
+    # Fallback if the font is not found
+    font = pygame.font.SysFont('Arial', 24)
 
 # Toolbar Buttons
 BUTTON_WIDTH = 140
