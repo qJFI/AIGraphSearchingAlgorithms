@@ -1,20 +1,22 @@
+# algorithms.py
 import pygame
 import heapq
 from queue import Queue
+import context
+import settings
+from DrawScene import draw_graph
 
-YELLOW = (255, 255, 0)
-GREEN = (0, 255, 0)
-EDGE_WIDTH = 3
-
-def get_node_pos(node_id, nodes):
+def get_node_pos(node_id):
     """Retrieve the position (x, y) of a node given its id."""
-    for node in nodes:
+    for node in context.nodes:
         if node[2] == node_id:
             return (node[0], node[1])
     return None
 
-def bfs(start, goals, nodes, edges, draw_graph):
+def bfs(draw_graph):
     """Perform Breadth-First Search."""
+    start = context.start_node
+    goals = context.goal_nodes
     if start is None or not goals:
         return
 
@@ -32,10 +34,10 @@ def bfs(start, goals, nodes, edges, draw_graph):
         visited.add(current)
 
         if current in goals:
-            reconstruct_path(came_from, start, current, nodes, draw_graph)
+            reconstruct_path(came_from, start, current)
             return  # Stop the search upon reaching the first goal
 
-        for edge in edges:
+        for edge in context.edges:
             neighbor = None
             if edge[0] == current:
                 neighbor = edge[1]
@@ -47,15 +49,14 @@ def bfs(start, goals, nodes, edges, draw_graph):
                     came_from[neighbor] = current
 
         draw_graph()
-        for node in visited:
-            pos = get_node_pos(node, nodes)
-            if pos:
-                pygame.draw.circle(pygame.display.get_surface(), YELLOW, pos, 20)
+        highlight_visited_nodes(visited)
         pygame.display.update()
         pygame.time.wait(300)
 
-def dfs(start, goals, nodes, edges, draw_graph):
+def dfs(draw_graph):
     """Perform Depth-First Search."""
+    start = context.start_node
+    goals = context.goal_nodes
     if start is None or not goals:
         return
 
@@ -72,10 +73,10 @@ def dfs(start, goals, nodes, edges, draw_graph):
         visited.add(current)
 
         if current in goals:
-            reconstruct_path(came_from, start, current, nodes, draw_graph)
+            reconstruct_path(came_from, start, current)
             return  # Stop the search upon reaching the first goal
 
-        for edge in edges:
+        for edge in context.edges:
             neighbor = None
             if edge[0] == current:
                 neighbor = edge[1]
@@ -87,15 +88,14 @@ def dfs(start, goals, nodes, edges, draw_graph):
                     came_from[neighbor] = current
 
         draw_graph()
-        for node in visited:
-            pos = get_node_pos(node, nodes)
-            if pos:
-                pygame.draw.circle(pygame.display.get_surface(), YELLOW, pos, 20)
+        highlight_visited_nodes(visited)
         pygame.display.update()
         pygame.time.wait(300)
 
-def ucs(start, goals, nodes, edges, draw_graph):
+def ucs(draw_graph):
     """Perform Uniform Cost Search."""
+    start = context.start_node
+    goals = context.goal_nodes
     if start is None or not goals:
         return
 
@@ -114,10 +114,10 @@ def ucs(start, goals, nodes, edges, draw_graph):
         visited.add(current_node)
 
         if current_node in goals:
-            reconstruct_path(came_from, start, current_node, nodes, draw_graph)
+            reconstruct_path(came_from, start, current_node)
             return  # Stop the search upon reaching the first goal
 
-        for edge in edges:
+        for edge in context.edges:
             neighbor = None
             if edge[0] == current_node:
                 neighbor = edge[1]
@@ -131,20 +131,19 @@ def ucs(start, goals, nodes, edges, draw_graph):
                     heapq.heappush(priority_queue, (new_cost, neighbor))
 
         draw_graph()
-        for node in visited:
-            pos = get_node_pos(node, nodes)
-            if pos:
-                pygame.draw.circle(pygame.display.get_surface(), YELLOW, pos, 20)
+        highlight_visited_nodes(visited)
         pygame.display.update()
         pygame.time.wait(300)
 
-def greedy_search(start, goals, nodes, edges, heuristics, draw_graph):
+def greedy_search(draw_graph):
     """Perform Greedy Best-First Search."""
+    start = context.start_node
+    goals = context.goal_nodes
     if start is None or not goals:
         return
 
     priority_queue = []
-    heapq.heappush(priority_queue, (heuristics.get(start, float('inf')), start))  # (heuristic value, node)
+    heapq.heappush(priority_queue, (context.heuristics.get(start, float('inf')), start))  # (heuristic value, node)
     came_from = {}
     visited = set()
 
@@ -157,35 +156,34 @@ def greedy_search(start, goals, nodes, edges, heuristics, draw_graph):
         visited.add(current_node)
 
         if current_node in goals:
-            reconstruct_path(came_from, start, current_node, nodes, draw_graph)
+            reconstruct_path(came_from, start, current_node)
             return  # Stop the search upon reaching the first goal
 
-        for edge in edges:
+        for edge in context.edges:
             neighbor = None
             if edge[0] == current_node:
                 neighbor = edge[1]
             elif edge[1] == current_node:
                 neighbor = edge[0]
             if neighbor is not None and neighbor not in visited:
-                heapq.heappush(priority_queue, (heuristics.get(neighbor, float('inf')), neighbor))
+                heapq.heappush(priority_queue, (context.heuristics.get(neighbor, float('inf')), neighbor))
                 if neighbor not in came_from:
                     came_from[neighbor] = current_node
 
         draw_graph()
-        for node in visited:
-            pos = get_node_pos(node, nodes)
-            if pos:
-                pygame.draw.circle(pygame.display.get_surface(), YELLOW, pos, 20)
+        highlight_visited_nodes(visited)
         pygame.display.update()
         pygame.time.wait(300)
 
-def a_star(start, goals, nodes, edges, heuristics, draw_graph):
+def a_star(draw_graph):
     """Perform A* Search."""
+    start = context.start_node
+    goals = context.goal_nodes
     if start is None or not goals:
         return
 
     priority_queue = []
-    start_h = heuristics.get(start, float('inf'))
+    start_h = context.heuristics.get(start, float('inf'))
     heapq.heappush(priority_queue, (start_h, 0, start))  # (f_cost, g_cost, node)
     came_from = {}
     g_costs = {start: 0}
@@ -200,10 +198,10 @@ def a_star(start, goals, nodes, edges, heuristics, draw_graph):
         visited.add(current_node)
 
         if current_node in goals:
-            reconstruct_path(came_from, start, current_node, nodes, draw_graph)
+            reconstruct_path(came_from, start, current_node)
             return  # Stop the search upon reaching the first goal
 
-        for edge in edges:
+        for edge in context.edges:
             neighbor = None
             if edge[0] == current_node:
                 neighbor = edge[1]
@@ -213,19 +211,16 @@ def a_star(start, goals, nodes, edges, heuristics, draw_graph):
                 tentative_g_cost = current_g_cost + edge[2]
                 if neighbor not in g_costs or tentative_g_cost < g_costs[neighbor]:
                     g_costs[neighbor] = tentative_g_cost
-                    f_cost = tentative_g_cost + heuristics.get(neighbor, float('inf'))
+                    f_cost = tentative_g_cost + context.heuristics.get(neighbor, float('inf'))
                     came_from[neighbor] = current_node
                     heapq.heappush(priority_queue, (f_cost, tentative_g_cost, neighbor))
 
         draw_graph()
-        for node in visited:
-            pos = get_node_pos(node, nodes)
-            if pos:
-                pygame.draw.circle(pygame.display.get_surface(), YELLOW, pos, 20)
+        highlight_visited_nodes(visited)
         pygame.display.update()
         pygame.time.wait(300)
 
-def reconstruct_path(came_from, start, goal, nodes, draw_graph):
+def reconstruct_path(came_from, start, goal):
     """Reconstruct the path from start to goal."""
     current = goal
     path = [current]
@@ -237,13 +232,27 @@ def reconstruct_path(came_from, start, goal, nodes, draw_graph):
 
     path.reverse()
 
-    # Draw the path
+    # Draw the final path
+    draw_graph()
     for i in range(len(path) - 1):
         current_node = path[i]
         next_node = path[i + 1]
-        current_pos = get_node_pos(current_node, nodes)
-        next_pos = get_node_pos(next_node, nodes)
+        current_pos = get_node_pos(current_node)
+        next_pos = get_node_pos(next_node)
         if current_pos and next_pos:
-            pygame.draw.line(pygame.display.get_surface(), GREEN, current_pos, next_pos, EDGE_WIDTH + 2)
-            pygame.display.update()
-            pygame.time.wait(300)
+            pygame.draw.line(
+                settings.screen,
+                settings.GREEN,
+                current_pos,
+                next_pos,
+                settings.EDGE_WIDTH + 2,
+            )
+    pygame.display.update()
+    pygame.time.wait(1000)
+
+def highlight_visited_nodes(visited):
+    """Highlight the visited nodes during the search."""
+    for node_id in visited:
+        pos = get_node_pos(node_id)
+        if pos:
+            pygame.draw.circle(settings.screen, settings.YELLOW, pos, settings.NODE_RADIUS)
