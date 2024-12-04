@@ -13,16 +13,24 @@ def get_node_pos(node_id):
             return (node[0], node[1])
     return None
 
-def highlight_visited_nodes(visited):
-    """Highlight the visited nodes during the search."""
+def highlight_nodes(visited, fringe):
+    """Highlight visited and fringe nodes during the search."""
     VISITED_NODE_COLOR = settings.get_color('VISITED_NODE_COLOR')
+    FRINGE_NODE_COLOR = settings.get_color('FRINGE_NODE_COLOR')
     NODE_RADIUS = settings.NODE_RADIUS
     screen = settings.screen
 
+    # Highlight visited nodes
     for node_id in visited:
         pos = get_node_pos(node_id)
         if pos:
             pygame.draw.circle(screen, VISITED_NODE_COLOR, pos, NODE_RADIUS)
+
+    # Highlight fringe nodes
+    for node_id in fringe:
+        pos = get_node_pos(node_id)
+        if pos and node_id not in visited:
+            pygame.draw.circle(screen, FRINGE_NODE_COLOR, pos, NODE_RADIUS)
 
 def reconstruct_path(came_from, start, goal):
     """Reconstruct the path from start to goal."""
@@ -93,10 +101,13 @@ def bfs():
                 if neighbor not in came_from:
                     came_from[neighbor] = current
 
+        # Extract current fringe nodes from the queue
+        fringe = list(queue.queue)
+
         draw_graph()
-        highlight_visited_nodes(visited)
+        highlight_nodes(visited, fringe)
         pygame.display.update()
-        pygame.time.wait(300)
+        pygame.time.wait(1500)
 
 def dfs():
     """Perform Depth-First Search."""
@@ -132,10 +143,13 @@ def dfs():
                 if neighbor not in came_from:
                     came_from[neighbor] = current
 
+        # Extract current fringe nodes from the stack
+        fringe = list(stack)
+
         draw_graph()
-        highlight_visited_nodes(visited)
+        highlight_nodes(visited, fringe)
         pygame.display.update()
-        pygame.time.wait(300)
+        pygame.time.wait(1500)
 
 def ucs():
     """Perform Uniform Cost Search."""
@@ -175,10 +189,13 @@ def ucs():
                     came_from[neighbor] = current_node
                     heapq.heappush(priority_queue, (new_cost, neighbor))
 
+        # Extract current fringe nodes from the priority queue
+        fringe = [node for (_, node) in priority_queue]
+
         draw_graph()
-        highlight_visited_nodes(visited)
+        highlight_nodes(visited, fringe)
         pygame.display.update()
-        pygame.time.wait(300)
+        pygame.time.wait(1500)
 
 def greedy_search():
     """Perform Greedy Best-First Search."""
@@ -216,10 +233,13 @@ def greedy_search():
                 if neighbor not in came_from:
                     came_from[neighbor] = current_node
 
+        # Extract current fringe nodes from the priority queue
+        fringe = [node for (_, node) in priority_queue]
+
         draw_graph()
-        highlight_visited_nodes(visited)
+        highlight_nodes(visited, fringe)
         pygame.display.update()
-        pygame.time.wait(300)
+        pygame.time.wait(1500)
 
 def a_star():
     """Perform A* Search."""
@@ -262,7 +282,11 @@ def a_star():
                     came_from[neighbor] = current_node
                     heapq.heappush(priority_queue, (f_cost, tentative_g_cost, neighbor))
 
+        # Extract current fringe nodes from the priority queue
+        fringe = [node for (_, _, node) in priority_queue]
+
         draw_graph()
-        highlight_visited_nodes(visited)
+        highlight_nodes(visited, fringe)
         pygame.display.update()
-        pygame.time.wait(300)
+        pygame.time.wait(1500)
+

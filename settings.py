@@ -22,6 +22,7 @@ dark_mode_colors = {
     'EDGE_COLOR': (70, 130, 180),            # Steel Blue
     'FONT_COLOR': (255, 255, 255),           # White
     'VISITED_NODE_COLOR': (255, 215, 0),     # Gold
+      'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
     'PATH_COLOR': (0, 255, 0),               # Lime
     'TOOLBAR_COLOR': (15, 15, 70),           # Slightly lighter dark blue
     'START_NODE_COLOR': (0, 255, 127),       # Spring Green
@@ -37,6 +38,7 @@ light_mode_colors = {
     'EDGE_COLOR': (0, 0, 0),                 # Black
     'FONT_COLOR': (0, 0, 0),                 # Black
     'VISITED_NODE_COLOR': (255, 165, 0),     # Orange
+    'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
     'PATH_COLOR': (34, 139, 34),             # Forest Green
     'TOOLBAR_COLOR': (230, 230, 230),        # Light Gray
     'START_NODE_COLOR': (50, 205, 50),       # Lime Green
