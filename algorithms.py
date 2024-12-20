@@ -7,7 +7,7 @@ import settings
 from DrawScene import draw_graph
 
 def get_node_pos(node_id):
-    """Retrieve the position (x, y) of a node given its id."""
+    """Retrieve the position in screen (x, y) of a node given its id."""
     for node in context.nodes:
         if node[2] == node_id:
             return (node[0], node[1])
@@ -193,8 +193,9 @@ def ucs():
                     heapq.heappush(priority_queue, (new_cost, neighbor))
 
         # Extract current fringe nodes from the priority queue
-        fringe = [node for (_, node) in priority_queue]
-
+        fringe = []
+        for item in priority_queue:
+          fringe.append(item[1])
         draw_graph()
         highlight_nodes(visited, fringe)
         pygame.display.flip()
@@ -238,7 +239,10 @@ def greedy_search():
                     came_from[neighbor] = current_node
 
         # Extract current fringe nodes from the priority queue
-        fringe = [node for (_, node) in priority_queue]
+        fringe =[]
+        for item in priority_queue:
+          fringe.append(item[1])
+
 
         draw_graph()
         highlight_nodes(visited, fringe)
@@ -288,7 +292,10 @@ def a_star():
                     heapq.heappush(priority_queue, (f_cost, tentative_g_cost, neighbor))
 
         # Extract current fringe nodes from the priority queue
-        fringe = [node for (_, _, node) in priority_queue]
+        fringe = []
+        for item in priority_queue:
+          fringe.append(item[2])
+
 
         draw_graph()
         highlight_nodes(visited, fringe)
