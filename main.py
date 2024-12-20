@@ -124,7 +124,7 @@ def main():
                         # Append new character to the input text
                         context.input_text += event.unicode
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN: # like C# MouseDown
                 pos = pygame.mouse.get_pos()
                 if pos[1] <= settings.TOOLBAR_HEIGHT:  # Check if click is on the toolbar
                     for label, rect in settings.buttons.items():
@@ -171,8 +171,10 @@ def main():
                         if clicked_node is not None:
                             if clicked_node in context.goal_nodes:
                                 context.goal_nodes.remove(clicked_node)
+                                context.heuristics[clicked_node]=1
                             else:
                                 context.goal_nodes.add(clicked_node)
+                                context.heuristics[clicked_node]=0
                     elif context.current_action == "Connect Nodes":
                         clicked_node = get_clicked_node(pos)
                         if clicked_node is not None:

@@ -37,7 +37,7 @@ light_mode_colors = {
     'NODE_COLOR': (173, 216, 230),           # Light Blue
     'EDGE_COLOR': (0, 0, 0),                 # Black
     'FONT_COLOR': (0, 0, 0),                 # Black
-    'VISITED_NODE_COLOR': (255, 165, 0),     # Orange
+    'VISITED_NODE_COLOR': (7, 7, 7),     # Orange
     'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
     'PATH_COLOR': (34, 139, 34),             # Forest Green
     'TOOLBAR_COLOR': (230, 230, 230),        # Light Gray
