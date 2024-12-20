@@ -73,7 +73,7 @@ def main():
         if context.input_active:
             draw_input_box()
 
-        pygame.display.update()
+        pygame.display.flip()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

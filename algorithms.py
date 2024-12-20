@@ -63,7 +63,7 @@ def reconstruct_path(came_from, start, goal):
                 next_pos,
                 EDGE_WIDTH + 2,
             )
-    pygame.display.update()
+    pygame.display.flip()
     pygame.time.wait(1000)
 
 def bfs():
@@ -106,7 +106,8 @@ def bfs():
 
         draw_graph()
         highlight_nodes(visited, fringe)
-        pygame.display.update()
+        pygame.display.flip()
+        pygame.event.pump()
         pygame.time.wait(1500)
 
 def dfs():
@@ -148,8 +149,10 @@ def dfs():
 
         draw_graph()
         highlight_nodes(visited, fringe)
-        pygame.display.update()
-        pygame.time.wait(1500)
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.wait(1500) #s
+
 
 def ucs():
     """Perform Uniform Cost Search."""
@@ -194,7 +197,8 @@ def ucs():
 
         draw_graph()
         highlight_nodes(visited, fringe)
-        pygame.display.update()
+        pygame.display.flip()
+        pygame.event.pump()
         pygame.time.wait(1500)
 
 def greedy_search():
@@ -238,7 +242,8 @@ def greedy_search():
 
         draw_graph()
         highlight_nodes(visited, fringe)
-        pygame.display.update()
+        pygame.display.flip()
+        pygame.event.pump()
         pygame.time.wait(1500)
 
 def a_star():
@@ -287,6 +292,7 @@ def a_star():
 
         draw_graph()
         highlight_nodes(visited, fringe)
-        pygame.display.update()
+        pygame.display.flip()
+        pygame.event.pump()
         pygame.time.wait(1500)
 
