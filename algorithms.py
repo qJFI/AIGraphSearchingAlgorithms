@@ -64,7 +64,7 @@ def reconstruct_path(came_from, start, goal):
                 EDGE_WIDTH + 2,
             )
     pygame.display.flip()
-    pygame.time.wait(1000)
+    pygame.time.delay(1000)
 
 def bfs():
     """Perform Breadth-First Search."""
@@ -108,7 +108,7 @@ def bfs():
         highlight_nodes(visited, fringe)
         pygame.display.flip()
         pygame.event.pump()
-        pygame.time.wait(1500)
+        pygame.time.delay(1500)
 
 def dfs():
     """Perform Depth-First Search."""
@@ -151,7 +151,7 @@ def dfs():
         highlight_nodes(visited, fringe)
         pygame.display.flip()
         pygame.event.pump()
-        pygame.time.wait(1500) #s
+        pygame.time.delay(1500) #s
 
 
 def ucs():
@@ -199,7 +199,7 @@ def ucs():
         highlight_nodes(visited, fringe)
         pygame.display.flip()
         pygame.event.pump()
-        pygame.time.wait(1500)
+        pygame.time.delay(1500)
 
 def greedy_search():
     """Perform Greedy Best-First Search."""
@@ -244,7 +244,7 @@ def greedy_search():
         highlight_nodes(visited, fringe)
         pygame.display.flip()
         pygame.event.pump()
-        pygame.time.wait(1500)
+        pygame.time.delay(1500)
 
 def a_star():
     """Perform A* Search."""
@@ -294,5 +294,5 @@ def a_star():
         highlight_nodes(visited, fringe)
         pygame.display.flip()
         pygame.event.pump()
-        pygame.time.wait(1500)
+        pygame.time.delay(1500)
 
