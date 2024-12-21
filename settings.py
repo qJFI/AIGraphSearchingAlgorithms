@@ -22,7 +22,7 @@ dark_mode_colors = {
     'EDGE_COLOR': (70, 130, 180),            # Steel Blue
     'FONT_COLOR': (255, 255, 255),           # White
     'VISITED_NODE_COLOR': (255, 215, 0),     # Gold
-      'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
+    'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
     'PATH_COLOR': (0, 255, 0),               # Lime
     'TOOLBAR_COLOR': (15, 15, 70),           # Slightly lighter dark blue
     'START_NODE_COLOR': (0, 255, 127),       # Spring Green
@@ -31,19 +31,19 @@ dark_mode_colors = {
 }
 
 light_mode_colors = {
-    'BACKGROUND_COLOR': (245, 245, 245),     # Light Gray
-    'BUTTON_COLOR': (220, 220, 220),         # Light Gray
-    'BUTTON_HIGHLIGHT_COLOR': (200, 200, 200),# Gray
-    'NODE_COLOR': (173, 216, 230),           # Light Blue
-    'EDGE_COLOR': (0, 0, 0),                 # Black
-    'FONT_COLOR': (0, 0, 0),                 # Black
-    'VISITED_NODE_COLOR': (7, 7, 7),     # Orange
-    'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
-    'PATH_COLOR': (34, 139, 34),             # Forest Green
-    'TOOLBAR_COLOR': (230, 230, 230),        # Light Gray
-    'START_NODE_COLOR': (50, 205, 50),       # Lime Green
-    'GOAL_NODE_COLOR': (220, 20, 60),        # Crimson
-    'INPUT_BOX_COLOR': (255, 255, 255),      # White
+    'BACKGROUND_COLOR': (255, 255, 255),     # White
+    'BUTTON_COLOR': (230, 240, 250),         # Blue-Gray
+    'BUTTON_HIGHLIGHT_COLOR': (200, 220, 240), # Light Blue
+    'NODE_COLOR': (70, 130, 180),           # Blue
+    'EDGE_COLOR': (105, 105, 105),          # Gray
+    'FONT_COLOR': (0, 0, 0),                # Black
+    'VISITED_NODE_COLOR': (255, 99, 71),    # Red
+    'FRINGE_NODE_COLOR': (255, 165, 0),     # Orange
+    'PATH_COLOR': (50, 205, 50),            # Lime Green
+    'TOOLBAR_COLOR': (240, 240, 245),       # Very Light Gray
+    'START_NODE_COLOR': (34, 139, 34),      # Forest Green
+    'GOAL_NODE_COLOR': (178, 34, 34),       # Firebrick
+    'INPUT_BOX_COLOR': (245, 245, 255),     # Lavender White
 }
 
 # Function to get current color scheme

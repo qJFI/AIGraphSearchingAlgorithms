@@ -20,21 +20,29 @@ def highlight_nodes(visited, fringe):
     FRINGE_NODE_COLOR = settings.get_color('FRINGE_NODE_COLOR')
     NODE_RADIUS = settings.NODE_RADIUS
     screen = settings.screen
+    
+    font = settings.font
+    FONT_COLOR = settings.get_color('FONT_COLOR')
 
     # Highlight visited nodes
     for node_id in visited:
         pos = get_node_pos(node_id)
         if pos:
             pygame.draw.circle(screen, VISITED_NODE_COLOR, pos, NODE_RADIUS)
+              # Draw node number
+            label = font.render(str(node_id), True, FONT_COLOR)
+            screen.blit(label, (pos[0] - 10, pos[1] - 10))
 
     # Highlight fringe nodes
     for node_id in fringe:
         pos = get_node_pos(node_id)
         if pos and node_id not in visited:
             pygame.draw.circle(screen, FRINGE_NODE_COLOR, pos, NODE_RADIUS)
+            label = font.render(str(node_id), True, FONT_COLOR)
+            screen.blit(label, (pos[0] - 10, pos[1] - 10))
     
-    font = settings.font
-    FONT_COLOR = settings.get_color('FONT_COLOR')
+
+  
 
     visited_text = f"Visited: {', '.join(map(str, visited))}"
     fringe_text = f"Fringe: {', '.join(map(str, fringe))}"

@@ -56,9 +56,7 @@ def draw_graph():
     BACKGROUND_COLOR = settings.get_color('BACKGROUND_COLOR')
     NODE_COLOR = settings.get_color('NODE_COLOR')
     EDGE_COLOR = settings.get_color('EDGE_COLOR')
-    PATH_COLOR = settings.get_color('PATH_COLOR')
     FONT_COLOR = settings.get_color('FONT_COLOR')
-    VISITED_NODE_COLOR = settings.get_color('VISITED_NODE_COLOR')
     START_NODE_COLOR = settings.get_color('START_NODE_COLOR')
     GOAL_NODE_COLOR = settings.get_color('GOAL_NODE_COLOR')
 
@@ -99,7 +97,7 @@ def draw_graph():
         # Display heuristic values
         if node_id in heuristics:
             heuristic_text = font.render(f"h={heuristics[node_id]}", True, FONT_COLOR)
-            screen.blit(heuristic_text, (x + 15, y - 10))
+            screen.blit(heuristic_text, (x + 25, y - 10))
 
 def draw_input_box():
     #Draw the input box for entering edge weights
