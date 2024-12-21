@@ -6,6 +6,7 @@ import context
 import settings
 from DrawScene import draw_graph
 
+
 def get_node_pos(node_id):
     """Retrieve the position in screen (x, y) of a node given its id."""
     for node in context.nodes:
@@ -31,6 +32,19 @@ def highlight_nodes(visited, fringe):
         pos = get_node_pos(node_id)
         if pos and node_id not in visited:
             pygame.draw.circle(screen, FRINGE_NODE_COLOR, pos, NODE_RADIUS)
+    
+    font = settings.font
+    FONT_COLOR = settings.get_color('FONT_COLOR')
+
+    visited_text = f"Visited: {', '.join(map(str, visited))}"
+    fringe_text = f"Fringe: {', '.join(map(str, fringe))}"
+
+    visited_surface = font.render(visited_text, True, FONT_COLOR)
+    fringe_surface = font.render(fringe_text, True, FONT_COLOR)
+
+    # Display the text on the screen
+    screen.blit(visited_surface, (50, settings.HEIGHT - 280))
+    screen.blit(fringe_surface, (50, settings.HEIGHT - 250))
 
 def reconstruct_path(came_from, start, goal):
     """Reconstruct the path from start to goal."""

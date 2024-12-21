@@ -1,0 +1,862 @@
+File: ../AIGraphSearchingAlgorithms\algorithms.py
+==================================================
+# algorithms.py
+import pygame
+import heapq
+from queue import Queue
+import context
+import settings
+from DrawScene import draw_graph
+
+
+def get_node_pos(node_id):
+    """Retrieve the position in screen (x, y) of a node given its id."""
+    for node in context.nodes:
+        if node[2] == node_id:
+            return (node[0], node[1])
+    return None
+
+def highlight_nodes(visited, fringe):
+    """Highlight visited and fringe nodes during the search."""
+    VISITED_NODE_COLOR = settings.get_color('VISITED_NODE_COLOR')
+    FRINGE_NODE_COLOR = settings.get_color('FRINGE_NODE_COLOR')
+    NODE_RADIUS = settings.NODE_RADIUS
+    screen = settings.screen
+
+    # Highlight visited nodes
+    for node_id in visited:
+        pos = get_node_pos(node_id)
+        if pos:
+            pygame.draw.circle(screen, VISITED_NODE_COLOR, pos, NODE_RADIUS)
+
+    # Highlight fringe nodes
+    for node_id in fringe:
+        pos = get_node_pos(node_id)
+        if pos and node_id not in visited:
+            pygame.draw.circle(screen, FRINGE_NODE_COLOR, pos, NODE_RADIUS)
+    
+    font = settings.font
+    FONT_COLOR = settings.get_color('FONT_COLOR')
+
+    visited_text = f"Visited: {', '.join(map(str, visited))}"
+    fringe_text = f"Fringe: {', '.join(map(str, fringe))}"
+
+    visited_surface = font.render(visited_text, True, FONT_COLOR)
+    fringe_surface = font.render(fringe_text, True, FONT_COLOR)
+
+    # Display the text on the screen
+    screen.blit(visited_surface, (50, settings.HEIGHT - 280))
+    screen.blit(fringe_surface, (50, settings.HEIGHT - 250))
+
+def reconstruct_path(came_from, start, goal):
+    """Reconstruct the path from start to goal."""
+    current = goal
+    path = [current]
+    while current != start:
+        current = came_from.get(current)
+        if current is None:
+            break
+        path.append(current)
+
+    path.reverse()
+
+    # Draw the final path
+    draw_graph()
+    PATH_COLOR = settings.get_color('PATH_COLOR')
+    EDGE_WIDTH = settings.EDGE_WIDTH
+    screen = settings.screen
+
+    for i in range(len(path) - 1):
+        current_node = path[i]
+        next_node = path[i + 1]
+        current_pos = get_node_pos(current_node)
+        next_pos = get_node_pos(next_node)
+        if current_pos and next_pos:
+            pygame.draw.line(
+                screen,
+                PATH_COLOR,
+                current_pos,
+                next_pos,
+                EDGE_WIDTH + 2,
+            )
+    pygame.display.flip()
+    pygame.time.delay(1000)
+
+def bfs():
+    """Perform Breadth-First Search."""
+    start = context.start_node
+    goals = context.goal_nodes
+    if start is None or not goals:
+        return
+
+    queue = Queue()
+    queue.put(start)
+    visited = set()
+    came_from = {}
+
+    while not queue.empty():
+        current = queue.get()
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        if current in goals:
+            reconstruct_path(came_from, start, current)
+            return  # Stop the search upon reaching the first goal
+
+        for edge in context.edges:
+            neighbor = None
+            if edge[0] == current:
+                neighbor = edge[1]
+            elif edge[1] == current:
+                neighbor = edge[0]
+            if neighbor is not None and neighbor not in visited:
+                queue.put(neighbor)
+                if neighbor not in came_from:
+                    came_from[neighbor] = current
+
+        # Extract current fringe nodes from the queue
+        fringe = list(queue.queue)
+
+        draw_graph()
+        highlight_nodes(visited, fringe)
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.delay(1500)
+
+def dfs():
+    """Perform Depth-First Search."""
+    start = context.start_node
+    goals = context.goal_nodes
+    if start is None or not goals:
+        return
+
+    stack = [start]
+    visited = set()
+    came_from = {}
+
+    while stack:
+        current = stack.pop()
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        if current in goals:
+            reconstruct_path(came_from, start, current)
+            return  # Stop the search upon reaching the first goal
+
+        for edge in context.edges:
+            neighbor = None
+            if edge[0] == current:
+                neighbor = edge[1]
+            elif edge[1] == current:
+                neighbor = edge[0]
+            if neighbor is not None and neighbor not in visited:
+                stack.append(neighbor)
+                if neighbor not in came_from:
+                    came_from[neighbor] = current
+
+        # Extract current fringe nodes from the stack
+        fringe = list(stack)
+
+        draw_graph()
+        highlight_nodes(visited, fringe)
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.delay(1500) #s
+
+
+def ucs():
+    """Perform Uniform Cost Search."""
+    start = context.start_node
+    goals = context.goal_nodes
+    if start is None or not goals:
+        return
+
+    priority_queue = []
+    heapq.heappush(priority_queue, (0, start))  # (cost, node)
+    came_from = {}
+    cost_so_far = {start: 0}
+    visited = set()
+
+    while priority_queue:
+        current_cost, current_node = heapq.heappop(priority_queue)
+
+        if current_node in visited:
+            continue
+
+        visited.add(current_node)
+
+        if current_node in goals:
+            reconstruct_path(came_from, start, current_node)
+            return  # Stop the search upon reaching the first goal
+
+        for edge in context.edges:
+            neighbor = None
+            if edge[0] == current_node:
+                neighbor = edge[1]
+            elif edge[1] == current_node:
+                neighbor = edge[0]
+            if neighbor is not None:
+                new_cost = current_cost + edge[2]
+                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                    cost_so_far[neighbor] = new_cost
+                    came_from[neighbor] = current_node
+                    heapq.heappush(priority_queue, (new_cost, neighbor))
+
+        # Extract current fringe nodes from the priority queue
+        fringe = []
+        for item in priority_queue:
+          fringe.append(item[1])
+        draw_graph()
+        highlight_nodes(visited, fringe)
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.delay(1500)
+
+def greedy_search():
+    """Perform Greedy Best-First Search."""
+    start = context.start_node
+    goals = context.goal_nodes
+    heuristics = context.heuristics
+    if start is None or not goals:
+        return
+
+    priority_queue = []
+    heapq.heappush(priority_queue, (heuristics.get(start, float('inf')), start))
+    came_from = {}
+    visited = set()
+
+    while priority_queue:
+        _, current_node = heapq.heappop(priority_queue)
+
+        if current_node in visited:
+            continue
+
+        visited.add(current_node)
+
+        if current_node in goals:
+            reconstruct_path(came_from, start, current_node)
+            return  # Stop the search upon reaching the first goal
+
+        for edge in context.edges:
+            neighbor = None
+            if edge[0] == current_node:
+                neighbor = edge[1]
+            elif edge[1] == current_node:
+                neighbor = edge[0]
+            if neighbor is not None and neighbor not in visited:
+                heapq.heappush(priority_queue, (heuristics.get(neighbor, float('inf')), neighbor))
+                if neighbor not in came_from:
+                    came_from[neighbor] = current_node
+
+        # Extract current fringe nodes from the priority queue
+        fringe =[]
+        for item in priority_queue:
+          fringe.append(item[1])
+
+
+        draw_graph()
+        highlight_nodes(visited, fringe)
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.delay(1500)
+
+def a_star():
+    """Perform A* Search."""
+    start = context.start_node
+    goals = context.goal_nodes
+    heuristics = context.heuristics
+    if start is None or not goals:
+        return
+
+    priority_queue = []
+    start_h = heuristics.get(start, float('inf'))
+    heapq.heappush(priority_queue, (start_h, 0, start))  # (f_cost, g_cost, node)
+    came_from = {}
+    g_costs = {start: 0}
+    visited = set()
+
+    while priority_queue:
+        _, current_g_cost, current_node = heapq.heappop(priority_queue)
+
+        if current_node in visited:
+            continue
+
+        visited.add(current_node)
+
+        if current_node in goals:
+            reconstruct_path(came_from, start, current_node)
+            return  # Stop the search upon reaching the first goal
+
+        for edge in context.edges:
+            neighbor = None
+            if edge[0] == current_node:
+                neighbor = edge[1]
+            elif edge[1] == current_node:
+                neighbor = edge[0]
+            if neighbor is not None:
+                tentative_g_cost = current_g_cost + edge[2]
+                if neighbor not in g_costs or tentative_g_cost < g_costs[neighbor]:
+                    g_costs[neighbor] = tentative_g_cost
+                    f_cost = tentative_g_cost + heuristics.get(neighbor, float('inf'))
+                    came_from[neighbor] = current_node
+                    heapq.heappush(priority_queue, (f_cost, tentative_g_cost, neighbor))
+
+        # Extract current fringe nodes from the priority queue
+        fringe = []
+        for item in priority_queue:
+          fringe.append(item[2])
+
+
+        draw_graph()
+        highlight_nodes(visited, fringe)
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.delay(1500)
+
+
+
+==================================================
+
+File: ../AIGraphSearchingAlgorithms\context.py
+==================================================
+# context.py
+#shared Vars 
+
+# Graph data
+nodes = []  # List of nodes as (x, y, id)
+edges = []  # List of edges [(node1_id, node2_id, weight)]
+heuristics = {}  # Heuristic values for each node
+start_node = None
+goal_nodes = set()  # Set of goal node ids
+next_node_id = 0  # To assign unique IDs to nodes
+
+# Action States
+current_action = None
+selected_node = None
+dragging_node = None
+input_active = False
+input_text = ""
+current_edge = None
+
+
+==================================================
+
+File: ../AIGraphSearchingAlgorithms\DrawScene.py
+==================================================
+# DrawScene.py
+import pygame
+import settings
+import context
+
+def draw_toolbar():
+    """Draw the toolbar with buttons."""
+    screen = settings.screen
+    buttons = settings.buttons
+    font = settings.font
+    TOOLBAR_HEIGHT = settings.TOOLBAR_HEIGHT
+    BUTTON_WIDTH = settings.BUTTON_WIDTH
+    FONT_COLOR = settings.get_color('FONT_COLOR')
+    BLACK = (0, 0, 0)
+
+    current_action = context.current_action
+
+    TOOLBAR_COLOR = settings.get_color('TOOLBAR_COLOR')
+    pygame.draw.rect(screen, TOOLBAR_COLOR, (0, 0, screen.get_width(), TOOLBAR_HEIGHT))
+
+    for label, rect in buttons.items():
+        # Highlight the selected button
+        mouse_pos = pygame.mouse.get_pos()
+        BUTTON_COLOR = settings.get_color('BUTTON_COLOR')
+        BUTTON_HIGHLIGHT_COLOR = settings.get_color('BUTTON_HIGHLIGHT_COLOR')
+        if rect.collidepoint(mouse_pos):
+            color = BUTTON_HIGHLIGHT_COLOR
+        elif current_action == label:
+            color = BUTTON_HIGHLIGHT_COLOR
+        else:
+            color = BUTTON_COLOR
+        pygame.draw.rect(screen, color, rect)
+        pygame.draw.rect(screen, BLACK, rect, 2)
+        text_surface = font.render(label, True, FONT_COLOR)
+        screen.blit(
+            text_surface,
+            (rect.x + (BUTTON_WIDTH - text_surface.get_width()) // 2, rect.y + 10),
+        )
+
+def draw_graph():
+    """Draw the graph with nodes, edges, and heuristic values."""
+    screen = settings.screen
+    nodes = context.nodes
+    edges = context.edges
+    heuristics = context.heuristics
+    start_node = context.start_node
+    goal_nodes = context.goal_nodes
+    NODE_RADIUS = settings.NODE_RADIUS
+    EDGE_WIDTH = settings.EDGE_WIDTH
+    font = settings.font
+    WIDTH = screen.get_width()
+    HEIGHT = screen.get_height()
+    TOOLBAR_HEIGHT = settings.TOOLBAR_HEIGHT
+    BLACK = (0, 0, 0)
+
+    BACKGROUND_COLOR = settings.get_color('BACKGROUND_COLOR')
+    NODE_COLOR = settings.get_color('NODE_COLOR')
+    EDGE_COLOR = settings.get_color('EDGE_COLOR')
+    PATH_COLOR = settings.get_color('PATH_COLOR')
+    FONT_COLOR = settings.get_color('FONT_COLOR')
+    VISITED_NODE_COLOR = settings.get_color('VISITED_NODE_COLOR')
+    START_NODE_COLOR = settings.get_color('START_NODE_COLOR')
+    GOAL_NODE_COLOR = settings.get_color('GOAL_NODE_COLOR')
+
+    screen.fill(BACKGROUND_COLOR, (0, TOOLBAR_HEIGHT, WIDTH, HEIGHT - TOOLBAR_HEIGHT))
+
+    # Draw edges
+    for edge in edges:
+        node1_id, node2_id, weight = edge
+        node1 = next((n for n in nodes if n[2] == node1_id), None)
+        node2 = next((n for n in nodes if n[2] == node2_id), None)
+        if node1 and node2:
+            x1, y1, _ = node1
+            x2, y2, _ = node2
+            pygame.draw.line(screen, EDGE_COLOR, (x1, y1), (x2, y2), EDGE_WIDTH)
+
+            # Draw weight
+            mid_x = (x1 + x2) // 2
+            mid_y = (y1 + y2) // 2
+            weight_text = font.render(str(weight), True, FONT_COLOR)
+            screen.blit(weight_text, (mid_x, mid_y))
+
+    # Draw nodes
+    for node in nodes:
+        x, y, node_id = node
+        if node_id == start_node:
+            color = START_NODE_COLOR
+        elif node_id in goal_nodes:
+            color = GOAL_NODE_COLOR
+        else:
+            color = NODE_COLOR
+        pygame.draw.circle(screen, color, (x, y), NODE_RADIUS)
+        pygame.draw.circle(screen, BLACK, (x, y), NODE_RADIUS, 2)
+
+        # Draw node label
+        label = font.render(str(node_id), True, FONT_COLOR)
+        screen.blit(label, (x - 10, y - 10))
+
+        # Display heuristic values
+        if node_id in heuristics:
+            heuristic_text = font.render(f"h={heuristics[node_id]}", True, FONT_COLOR)
+            screen.blit(heuristic_text, (x + 15, y - 10))
+
+def draw_input_box():
+    """Draw the input box for entering edge weights."""
+    screen = settings.screen
+    input_box = settings.input_box
+    font = settings.font
+    FONT_COLOR = settings.get_color('FONT_COLOR')
+    INPUT_BOX_COLOR = settings.get_color('INPUT_BOX_COLOR')
+    BLACK = (0, 0, 0)
+
+    input_text = context.input_text
+
+    pygame.draw.rect(screen, INPUT_BOX_COLOR, input_box)
+    pygame.draw.rect(screen, BLACK, input_box, 2)
+    text_surface = font.render(input_text, True, FONT_COLOR)
+    screen.blit(text_surface, (input_box.x + 5, input_box.y + 5))
+    pygame.display.update()
+
+
+==================================================
+
+File: ../AIGraphSearchingAlgorithms\main.py
+==================================================
+# main.py
+import pygame
+import math
+from algorithms import bfs, dfs, ucs, greedy_search, a_star
+from DrawScene import draw_toolbar, draw_graph, draw_input_box
+import settings
+import context
+
+def distance(node1, node2):
+    """Calculate Euclidean distance between two nodes."""
+    return math.sqrt((node1[0] - node2[0]) ** 2 + (node1[1] - node2[1]) ** 2)
+
+def get_clicked_node(pos):
+    """Return the id of the node at the clicked position, or None."""
+    for node in context.nodes:
+        x, y, node_id = node
+        if distance(pos, (x, y)) <= settings.NODE_RADIUS:
+            return node_id
+    return None
+
+def initialize_sample_graph():
+    """Initialize the graph with a predefined sample."""
+    context.nodes = [
+        (300, 400, 0),
+        (500, 300, 1),
+        (500, 500, 2),
+        (700, 400, 3),
+        (400, 200, 4),
+        (400, 600, 5),
+        (600, 200, 6),
+        (600, 600, 7),
+        (800, 300, 8),
+        (800, 500, 9),
+    ]
+    context.next_node_id = 10  # Update next_node_id based on sample nodes
+    context.edges = [
+        (0, 1, 5),
+        (1, 2, 3),
+        (2, 3, 2),
+        (0, 4, 7),
+        (1, 4, 4),
+        (3, 8, 6),
+        (2, 5, 4),
+        (3, 9, 3),
+        (6, 7, 2),
+        (8, 9, 5),
+        (0, 5, 6),  # Connect node 0 to node 5
+        (4, 6, 4),  # Connect node 4 to node 6
+        (7, 9, 3),  # Connect node 7 to node 9
+    ]
+    context.heuristics = {
+        0: 9,
+        1: 8,
+        2: 7,
+        3: 6,
+        4: 10,
+        5: 7,
+        6: 5,
+        7: 4,
+        8: 3,
+        9: 0,  # One of the goal nodes
+    }
+    context.start_node = 0
+    context.goal_nodes = {9}  # Initialize with node 9 as a goal node
+
+def main():
+    running = True
+
+    while running:
+        draw_toolbar()
+        draw_graph()
+
+        if context.input_active:
+            draw_input_box()
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                return
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                    pygame.quit()
+                    return
+
+                if context.input_active:
+                    if event.key == pygame.K_RETURN:
+                        if context.input_text.isdigit():
+                            if context.current_action == "Add Heuristic" and context.selected_node is not None:
+                                # Assign the entered heuristic value to the selected node
+                                context.heuristics[context.selected_node] = int(context.input_text)
+                                context.input_text = ""
+                                context.input_active = False
+                                context.selected_node = None
+
+                            elif context.current_action == "Connect Nodes" and context.current_edge is not None:
+                                # Modify the weight of the existing edge instead of adding a new one
+                                node1, node2 = context.current_edge
+                                edge_found = False
+
+                                # Search for the existing edge and update the weight
+                                for i, edge in enumerate(context.edges):
+                                    if (edge[0] == node1 and edge[1] == node2) or (edge[0] == node2 and edge[1] == node1):
+                                        context.edges[i] = (node1, node2, int(context.input_text))
+                                        edge_found = True
+                                        break
+
+                                # If the edge doesn't exist, add it as a new one
+                                if not edge_found:
+                                    context.edges.append((node1, node2, int(context.input_text)))
+
+                                context.input_text = ""
+                                context.input_active = False
+                                context.current_edge = None
+
+                    elif event.key == pygame.K_BACKSPACE:
+                        # Allow backspace to edit the input text
+                        context.input_text = context.input_text[:-1]
+                    else:
+                        # Append new character to the input text
+                        context.input_text += event.unicode
+
+            if event.type == pygame.MOUSEBUTTONDOWN: # like C# MouseDown
+                pos = pygame.mouse.get_pos()
+                if pos[1] <= settings.TOOLBAR_HEIGHT:  # Check if click is on the toolbar
+                    for label, rect in settings.buttons.items():
+                        if rect.collidepoint(pos):
+                            if label == "Toggle Dark Mode":
+                                # Toggle the dark mode
+                                settings.is_dark_mode = not settings.is_dark_mode
+                                # No need to change current_action
+                                break
+                            elif label == "Reset":
+                                # Reset the graph and context variables
+                                context.nodes = []
+                                context.edges = []
+                                context.heuristics = {}
+                                context.start_node = None
+                                context.goal_nodes = set()
+                                context.next_node_id = 0
+                                context.current_action = None
+                                context.selected_node = None
+                                context.dragging_node = None
+                                context.input_active = False
+                                context.input_text = ""
+                                context.current_edge = None
+                                break
+                            else:
+                                context.current_action = label
+                                context.selected_node = None
+                                context.input_active = False
+                                context.dragging_node = None
+                                # Initialize sample graph if "Example" button is pressed
+                                if label == "Example":
+                                    initialize_sample_graph()
+                                break
+                else:  # Graph interaction
+                    if context.current_action == "Add Node":
+                        context.nodes.append((pos[0], pos[1], context.next_node_id))
+                        context.next_node_id += 1
+                    elif context.current_action == "Set Start":
+                        clicked_node = get_clicked_node(pos)
+                        if clicked_node is not None:
+                            context.start_node = clicked_node
+                    elif context.current_action == "Set Goal":
+                        clicked_node = get_clicked_node(pos)
+                        if clicked_node is not None:
+                            if clicked_node in context.goal_nodes:
+                                context.goal_nodes.remove(clicked_node)
+                                context.heuristics[clicked_node]=1
+                            else:
+                                context.goal_nodes.add(clicked_node)
+                                context.heuristics[clicked_node]=0
+                    elif context.current_action == "Connect Nodes":
+                        clicked_node = get_clicked_node(pos)
+                        if clicked_node is not None:
+                            if context.selected_node is None:
+                                context.selected_node = clicked_node
+                            else:
+                                context.current_edge = (context.selected_node, clicked_node)
+                                context.input_active = True
+                                settings.input_box.center = pos
+                                context.selected_node = None
+                    elif context.current_action == "Move Node":
+                        clicked_node = get_clicked_node(pos)
+                        if clicked_node is not None:
+                            context.dragging_node = clicked_node
+                    elif context.current_action == "Remove Node":
+                        clicked_node = get_clicked_node(pos)
+                        if clicked_node is not None:
+                            # Remove the node by id
+                            context.nodes = [n for n in context.nodes if n[2] != clicked_node]
+                            # Remove all edges connected to this node
+                            context.edges[:] = [e for e in context.edges if clicked_node not in e[:2]]
+                            context.start_node = None if context.start_node == clicked_node else context.start_node
+                            context.goal_nodes.discard(clicked_node)  # Remove from goal nodes if present
+                            context.heuristics.pop(clicked_node, None)
+                    elif context.current_action == "Add Heuristic":
+                        clicked_node = get_clicked_node(pos)
+                        if clicked_node is not None:
+                            context.selected_node = clicked_node
+                            context.input_active = True
+                            settings.input_box.center = pos
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if context.current_action == "Move Node":
+                    context.dragging_node = None
+
+            if event.type == pygame.MOUSEMOTION:
+                if context.dragging_node is not None:
+                    # Update the position of the dragging node
+                    for idx, node in enumerate(context.nodes):
+                        if node[2] == context.dragging_node:
+                            context.nodes[idx] = (event.pos[0], event.pos[1], node[2])
+                            break
+
+        # Run algorithms if action is selected
+        if context.current_action == "Run BFS" and context.start_node is not None and context.goal_nodes:
+            bfs()
+            context.current_action = None
+
+        if context.current_action == "Run DFS" and context.start_node is not None and context.goal_nodes:
+            dfs()
+            context.current_action = None
+
+        if context.current_action == "Run UCS" and context.start_node is not None and context.goal_nodes:
+            ucs()
+            context.current_action = None
+
+        if context.current_action == "Run Greedy" and context.start_node is not None and context.goal_nodes:
+            greedy_search()
+            context.current_action = None
+
+        if context.current_action == "Run A*" and context.start_node is not None and context.goal_nodes:
+            a_star()
+            context.current_action = None
+
+if __name__ == "__main__":
+    main()
+
+
+==================================================
+
+File: ../AIGraphSearchingAlgorithms\python code gathering.py
+==================================================
+import os
+
+def read_python_files(directory):
+    # Open the output text file
+    with open('python_files_output.txt', 'w') as output_file:
+        # Walk through the directory
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py'):  # Check for Python files
+                    file_path = os.path.join(root, file)
+                    output_file.write(f"File: {file_path}\n")
+                    output_file.write("="*50 + "\n")
+                    # Read and write the content of the Python file
+                    with open(file_path, 'r') as f:
+                        output_file.write(f.read())
+                    output_file.write("\n\n" + "="*50 + "\n\n")
+
+if __name__ == "__main__":
+    directory = "../AIGraphSearchingAlgorithms"
+    read_python_files(directory)
+    
+    print("Output saved to python_files_output.txt")
+
+
+==================================================
+
+File: ../AIGraphSearchingAlgorithms\settings.py
+==================================================
+# settings.py
+import pygame
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+WIDTH, HEIGHT = 1920, 1080
+NODE_RADIUS = 20
+EDGE_WIDTH = 3
+TOOLBAR_HEIGHT = 110  # Increased to accommodate two rows of buttons
+
+# Mode flag
+is_dark_mode = True  # Start in dark mode
+
+# Color Schemes
+dark_mode_colors = {
+    'BACKGROUND_COLOR': (10, 10, 50),        # Dark Blue
+    'BUTTON_COLOR': (0, 0, 128),             # Navy Blue
+    'BUTTON_HIGHLIGHT_COLOR': (25, 25, 112), # Midnight Blue
+    'NODE_COLOR': (30, 144, 255),            # Dodger Blue
+    'EDGE_COLOR': (70, 130, 180),            # Steel Blue
+    'FONT_COLOR': (255, 255, 255),           # White
+    'VISITED_NODE_COLOR': (255, 215, 0),     # Gold
+      'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
+    'PATH_COLOR': (0, 255, 0),               # Lime
+    'TOOLBAR_COLOR': (15, 15, 70),           # Slightly lighter dark blue
+    'START_NODE_COLOR': (0, 255, 127),       # Spring Green
+    'GOAL_NODE_COLOR': (255, 69, 0),         # Orange Red
+    'INPUT_BOX_COLOR': (50, 50, 100),        # Darker Blue
+}
+
+light_mode_colors = {
+    'BACKGROUND_COLOR': (245, 245, 245),     # Light Gray
+    'BUTTON_COLOR': (220, 220, 220),         # Light Gray
+    'BUTTON_HIGHLIGHT_COLOR': (200, 200, 200),# Gray
+    'NODE_COLOR': (173, 216, 230),           # Light Blue
+    'EDGE_COLOR': (0, 0, 0),                 # Black
+    'FONT_COLOR': (0, 0, 0),                 # Black
+    'VISITED_NODE_COLOR': (7, 7, 7),     # Orange
+    'FRINGE_NODE_COLOR': (255, 140, 0),  # Dark Orange
+    'PATH_COLOR': (34, 139, 34),             # Forest Green
+    'TOOLBAR_COLOR': (230, 230, 230),        # Light Gray
+    'START_NODE_COLOR': (50, 205, 50),       # Lime Green
+    'GOAL_NODE_COLOR': (220, 20, 60),        # Crimson
+    'INPUT_BOX_COLOR': (255, 255, 255),      # White
+}
+
+# Function to get current color scheme
+def get_color(name):
+    return dark_mode_colors[name] if is_dark_mode else light_mode_colors[name]
+
+# Pygame setup
+infoObject = pygame.display.Info()  # Get real screen size to adjust window size
+screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h - 50), pygame.RESIZABLE)
+pygame.display.set_caption("Interactive Graph Visualizer")
+
+# Load a gaming-style font
+font_name = "Orbitron-Regular.ttf"  # Ensure this font file exists
+try:
+    font = pygame.font.Font(font_name, 24)
+except:
+    # Fallback if the font is not found
+    font = pygame.font.SysFont('Arial', 24)
+
+# Toolbar Buttons
+BUTTON_WIDTH = 140
+BUTTON_HEIGHT = 40
+BUTTON_SPACING = 10
+
+buttons = {
+    # First column buttons
+    "Add Node": pygame.Rect(10, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Remove Node": pygame.Rect(10, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
+  
+    # Second column buttons
+    "Move Node": pygame.Rect(160, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Reset": pygame.Rect(160, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
+    
+    # Third column buttons
+    "Set Start": pygame.Rect(360, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Set Goal": pygame.Rect(360, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
+
+    # Fourth column buttons
+    "Add Heuristic": pygame.Rect(550, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Connect Nodes": pygame.Rect(550, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
+
+    # Fifth column buttons
+    "Run BFS": pygame.Rect(760, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Run DFS": pygame.Rect(760, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
+
+    # Sixth column buttons
+    "Run UCS": pygame.Rect(910, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Run Greedy": pygame.Rect(910, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
+
+    # Seventh column buttons
+    "Run A*": pygame.Rect(1060, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+
+    # Eighth column buttons
+    "Example": pygame.Rect(1600, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
+    "Toggle Dark Mode": pygame.Rect(1600, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
+}
+
+# Input box for entering values
+input_box = pygame.Rect(300, 500, 140, 32)
+
+
+==================================================
+

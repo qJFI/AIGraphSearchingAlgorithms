@@ -10,6 +10,22 @@ def distance(node1, node2):
     """Calculate Euclidean distance between two nodes."""
     return math.sqrt((node1[0] - node2[0]) ** 2 + (node1[1] - node2[1]) ** 2)
 
+
+def calculateAllHurestics():
+    """Automatically calculate and set heuristics for nodes without existing values."""
+    for node in context.nodes:
+        node_id = node[2]
+        
+        # Calculate heuristic as the minimum distance to any goal node
+        min_distance = float('inf')
+        for goal_id in context.goal_nodes:
+            goal_node = next((n for n in context.nodes if n[2] == goal_id), None)
+            if goal_node:
+                distance_to_goal = distance(node, goal_node)
+                if distance_to_goal < min_distance:
+                    min_distance = distance_to_goal
+            context.heuristics[node_id] = int(min_distance)  # Use int for simplicity
+
 def get_clicked_node(pos):
     """Return the id of the node at the clicked position, or None."""
     for node in context.nodes:
@@ -125,7 +141,7 @@ def main():
                         context.input_text += event.unicode
 
             if event.type == pygame.MOUSEBUTTONDOWN: # like C# MouseDown
-                pos = pygame.mouse.get_pos()
+                pos = pygame.mouse.get_pos() #e.x ,e.y 
                 if pos[1] <= settings.TOOLBAR_HEIGHT:  # Check if click is on the toolbar
                     for label, rect in settings.buttons.items():
                         if rect.collidepoint(pos):
@@ -205,6 +221,10 @@ def main():
                             context.selected_node = clicked_node
                             context.input_active = True
                             settings.input_box.center = pos
+                    elif context.current_action == "All Heuristics":
+                        calculateAllHurestics()
+                        context.current_action = None
+
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if context.current_action == "Move Node":

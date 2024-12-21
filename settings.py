@@ -95,7 +95,7 @@ buttons = {
 
     # Seventh column buttons
     "Run A*": pygame.Rect(1060, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
-
+    "All Heuristics" : pygame.Rect(1210, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
     # Eighth column buttons
     "Example": pygame.Rect(1600, 10, BUTTON_WIDTH, BUTTON_HEIGHT),
     "Toggle Dark Mode": pygame.Rect(1600, 10 + BUTTON_HEIGHT + BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT),
