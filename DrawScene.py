@@ -4,7 +4,7 @@ import settings
 import context
 
 def draw_toolbar():
-    """Draw the toolbar with buttons."""
+    #Draw the toolbar with buttons
     screen = settings.screen
     buttons = settings.buttons
     font = settings.font
@@ -38,7 +38,7 @@ def draw_toolbar():
         )
 
 def draw_graph():
-    """Draw the graph with nodes, edges, and heuristic values."""
+    #Draw the graph with nodes, edges, and heuristic values
     screen = settings.screen
     nodes = context.nodes
     edges = context.edges
@@ -102,7 +102,7 @@ def draw_graph():
             screen.blit(heuristic_text, (x + 15, y - 10))
 
 def draw_input_box():
-    """Draw the input box for entering edge weights."""
+    #Draw the input box for entering edge weights
     screen = settings.screen
     input_box = settings.input_box
     font = settings.font

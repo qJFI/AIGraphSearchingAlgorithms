@@ -8,14 +8,14 @@ from DrawScene import draw_graph
 
 
 def get_node_pos(node_id):
-    """Retrieve the position in screen (x, y) of a node given its id."""
+    #Retrieve the position in screen (x, y) of a node given its id.
     for node in context.nodes:
         if node[2] == node_id:
             return (node[0], node[1])
     return None
 
 def highlight_nodes(visited, fringe):
-    """Highlight visited and fringe nodes during the search."""
+    #Highlight visited and fringe nodes during the search.
     VISITED_NODE_COLOR = settings.get_color('VISITED_NODE_COLOR')
     FRINGE_NODE_COLOR = settings.get_color('FRINGE_NODE_COLOR')
     NODE_RADIUS = settings.NODE_RADIUS
@@ -47,7 +47,7 @@ def highlight_nodes(visited, fringe):
     screen.blit(fringe_surface, (50, settings.HEIGHT - 250))
 
 def reconstruct_path(came_from, start, goal):
-    """Reconstruct the path from start to goal."""
+    #Reconstruct the path from start to goal.
     current = goal
     path = [current]
     while current != start:
@@ -81,7 +81,7 @@ def reconstruct_path(came_from, start, goal):
     pygame.time.delay(1000)
 
 def bfs():
-    """Perform Breadth-First Search."""
+    #Perform Breadth-First Search.
     start = context.start_node
     goals = context.goal_nodes
     if start is None or not goals:
@@ -125,7 +125,7 @@ def bfs():
         pygame.time.delay(1500)
 
 def dfs():
-    """Perform Depth-First Search."""
+    #Perform Depth-First Search.
     start = context.start_node
     goals = context.goal_nodes
     if start is None or not goals:
@@ -169,7 +169,7 @@ def dfs():
 
 
 def ucs():
-    """Perform Uniform Cost Search."""
+    #Perform Uniform Cost Search.
     start = context.start_node
     goals = context.goal_nodes
     if start is None or not goals:
@@ -217,7 +217,7 @@ def ucs():
         pygame.time.delay(1500)
 
 def greedy_search():
-    """Perform Greedy Best-First Search."""
+    #Perform Greedy Best-First Search.
     start = context.start_node
     goals = context.goal_nodes
     heuristics = context.heuristics
@@ -265,7 +265,7 @@ def greedy_search():
         pygame.time.delay(1500)
 
 def a_star():
-    """Perform A* Search."""
+    #Perform A* Search.
     start = context.start_node
     goals = context.goal_nodes
     heuristics = context.heuristics
